@@ -1,0 +1,212 @@
+<html>
+<head>
+  <title>C:\>_HOLLYWOOD_SYSTEM_OVERLOAD_</title>
+  <HTA:APPLICATION
+    ID="HackerEffect"
+    APPLICATIONNAME="Hacker Effect"
+    BORDER="thin"                  
+    CAPTION="yes"                  
+    MAXIMIZEBUTTON="yes"
+    MINIMIZEBUTTON="yes"
+    SINGLEINSTANCE="no"            
+    WINDOWSTATE="maximize"           
+    SCROLL="no"                    
+    CONTEXTMENU="no"               
+  />
+  <style>
+    body {
+      background-color: #000000;
+      color: #00FF00;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 14px;
+      margin: 0;
+      padding: 10px;
+      overflow: auto; 
+      user-select: none;
+      cursor: default;
+    }
+    .line {
+      white-space: pre;
+      animation: flicker 0.1s infinite alternate; 
+      opacity: 0.9;
+    }
+    .error {
+      color: #FF0000;
+      font-weight: bold;
+    }
+    .warning {
+      color: #FFFF00;
+    }
+
+    @keyframes flicker {
+      0%   { opacity: 0.85; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="console_output"></div>
+
+  <script language="JScript">
+    var outputDiv = document.getElementById("console_output");
+    var allSpawnedWindows = []; // Track all spawned windows
+    
+    var lines = [
+      "ACCESS DENIED - RETRYING...",
+      "BRUTE FORCE IN PROGRESS [###########       ] 68%",
+      "INITIALIZING SUB-ROUTINE 'GHOST_PROTOCOL.DLL'",
+      "KERNEL OVERLOAD - DATA STREAM INCONSISTENCY",
+      "DECRYPTING SECURE CHANNEL // KEY_FOUND = TRUE",
+      "PINGING REMOTE SERVER 192.168.1.104 -- TIMEOUT",
+      "SCANNING PORTS [TCP/UDP] 0x00A3 0x00B5",
+      "UPLOAD: sensitive_data.zip [COMPLETE] 100%",
+      "DOWNLOAD: unknown_payload.exe [FAILED] NETWORK ERROR",
+      "ESTABLISHING SECURE SHELL 0x7FFD_A9B2",
+      "INJECTING MALWARE_ALPHA.EXE INTO PID: 1472",
+      "CRITICAL ERROR: MEMORY LEAK DETECTED",
+      "AUTHENTICATION FAILED for user 'admin'",
+      "SYNCHRONIZING DATABASES... COMPLETE.",
+      "FIREWALL BYPASS ACTIVE - STATUS: ONLINE",
+      "ATTEMPTING ROOT ACCESS VIA EXPLOIT CVE-2021-XXXX",
+      "REMOTE ACCESS GRANTED - SESSION ESTABLISHED.",
+      "C:\\>_>"
+    ];
+
+    var errors = [
+        "ERROR 404: RESOURCE NOT FOUND",
+        "PERMISSION DENIED. CONTACT SYSTEM ADMINISTRATOR.",
+        "CRITICAL SYSTEM FAILURE - REBOOT REQUIRED",
+        "UNKNOWN EXCEPTION CAUGHT AT 0x00007FFB",
+    ];
+
+    var warnings = [
+        "WARNING: UNSECURED CONNECTION DETECTED",
+        "ATTENTION: UNEXPECTED DATA VOLUME",
+        "CAUTION: POTENTIAL BUFFER OVERFLOW",
+    ];
+
+    var numWindows = 20;
+    var maxLines = 25;
+
+    function getRandomInt(min, max) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateRandomLine() {
+      var rand = Math.random();
+      var chosenLine;
+      var className = "line";
+
+      if (rand < 0.08) {
+        chosenLine = errors[getRandomInt(0, errors.length - 1)];
+        className += " error";
+      } else if (rand < 0.18) {
+        chosenLine = warnings[getRandomInt(0, warnings.length - 1)];
+        className += " warning";
+      } else {
+        chosenLine = lines[getRandomInt(0, lines.length - 1)];
+      }
+
+      var noise = (Math.random() < 0.3 ? " 0x" + Math.random().toString(16).substring(2, 6).toUpperCase() : "");
+      
+      return '<div class="' + className + '">' + chosenLine + noise + '</div>';
+    }
+
+    function populateWindow(targetDiv) {
+      targetDiv.style.opacity = '0.7'; 
+      setTimeout(function() { targetDiv.style.opacity = '1'; }, 50);
+
+      var newContent = "";
+      for (var i = 0; i < maxLines; i++) {
+        newContent += generateRandomLine();
+      }
+      targetDiv.innerHTML = newContent;
+      targetDiv.scrollTop = targetDiv.scrollHeight;
+    }
+
+    function spawnHackerWindow() {
+      try {
+        var screenWidth = screen.availWidth;
+        var screenHeight = screen.availHeight;
+
+        var width = getRandomInt(400, 700);
+        var height = getRandomInt(250, 450);
+        var left = getRandomInt(0, screenWidth - width);
+        var top = getRandomInt(0, screenHeight - height);
+        
+        // Simple approach: use mshta.exe with the current script location
+        var shell = new ActiveXObject("WScript.Shell");
+        
+        // Get current script path from document location
+        var scriptPath = location.pathname;
+        
+        // Launch new instance with parameters
+        var cmd = 'mshta.exe "' + scriptPath + '?child=true&left=' + left + '&top=' + top + '"';
+        shell.Run(cmd, 1, false);
+        
+        // Note: We can't track child window objects, but they'll close via taskkill
+      } catch(e) {
+        // Silently fail if can't spawn
+      }
+    }
+
+    // Hotkey handler - ESC key closes all instances
+    document.onkeydown = function(e) {
+      e = e || window.event;
+      if (e.keyCode === 27) { // ESC key
+        try {
+          var shell = new ActiveXObject("WScript.Shell");
+          // Kill all mshta.exe processes (this closes all HTA windows)
+          shell.Run("taskkill /F /IM mshta.exe", 0, false);
+        } catch(ex) {
+          // Fallback: just close this window
+          window.close();
+        }
+      }
+    };
+
+    // Check if this is a child window
+    var isChildWindow = (location.search.indexOf("child=true") !== -1);
+    var urlParams = location.search.substring(1).split('&');
+    var paramMap = {};
+    for (var i = 0; i < urlParams.length; i++) {
+        var pair = urlParams[i].split('=');
+        if (pair.length === 2) {
+            paramMap[pair[0]] = pair[1];
+        }
+    }
+
+    if (isChildWindow) {
+      var newLeft = parseInt(paramMap['left']);
+      var newTop = parseInt(paramMap['top']);
+      if (!isNaN(newLeft) && !isNaN(newTop)) {
+          window.moveTo(newLeft, newTop);
+          window.resizeTo(getRandomInt(400, 700), getRandomInt(250, 450));
+      }
+
+      populateWindow(outputDiv);
+      setInterval(function() {
+        if (Math.random() < 0.7) { 
+            populateWindow(outputDiv);
+        }
+      }, getRandomInt(500, 2000)); 
+      
+    } else {
+      // Main window starts maximized
+      window.moveTo(0, 0);
+      window.resizeTo(screen.availWidth, screen.availHeight);
+      
+      for (var i = 0; i < numWindows; i++) {
+        setTimeout(function() { spawnHackerWindow(); }, i * 200);
+      }
+      
+      populateWindow(outputDiv);
+      setInterval(function() {
+        populateWindow(outputDiv);
+      }, getRandomInt(1000, 3000));
+    }
+  </script>
+</body>
+</html>

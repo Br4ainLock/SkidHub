@@ -1,0 +1,312 @@
+<html>
+<head>
+<title>FATAL SYSTEM ERROR</title>
+<HTA:APPLICATION
+    ID="oHTA"
+    APPLICATIONNAME="SystemError"
+    VERSION="1.0"
+    BORDER="none"
+    INNERBORDER="no"
+    SCROLL="no"
+    WINDOWSTATE="maximize"
+    MAXIMIZEBUTTON="no"
+    MINIMIZEBUTTON="no"
+    SYSMENU="no"
+    CAPTION="no"
+/>
+
+<style>
+    body {
+        font-family: 'Lucida Console', 'Courier New', monospace;
+        background-color: #000093;
+        color: #FFFFFF;
+        overflow: hidden;
+        margin: 0; padding: 0;
+        height: 100vh; width: 100vw;
+        display: flex; flex-direction: column;
+        user-select: none;
+        font-size: 11pt;
+        line-height: 1.1em;
+    }
+    
+    .bsod-header {
+        padding: 20px;
+        text-align: center;
+        border-bottom: 2px solid #FFFFFF;
+    }
+    
+    .error-code {
+        font-size: 24pt;
+        font-weight: bold;
+        color: #FFFFFF;
+        margin-bottom: 10px;
+    }
+    
+    .stop-message {
+        font-size: 14pt;
+        color: #FFFFFF;
+        margin-bottom: 20px;
+    }
+    
+    .technical-info {
+        padding: 0 20px 20px 20px;
+        border-bottom: 2px solid #FFFFFF;
+    }
+    
+    .tech-line {
+        margin: 5px 0;
+        white-space: nowrap;
+    }
+    
+    .progress-section {
+        padding: 20px;
+    }
+    
+    .progress-text {
+        font-size: 12pt;
+        margin-bottom: 10px;
+    }
+    
+    .progress-bar {
+        width: 100%;
+        height: 20px;
+        background-color: #000000;
+        border: 1px solid #FFFFFF;
+        margin-bottom: 15px;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background-color: #FF0000;
+        width: 0%;
+    }
+    
+    .system-log {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background-color: #000000;
+        border-top: 2px solid #FFFFFF;
+    }
+    
+    .log-entry {
+        margin: 2px 0;
+        white-space: pre;
+        font-size: 10pt;
+    }
+    
+    .error-text { color: #FF0000; }
+    .warning-text { color: #FFFF00; }
+    .info-text { color: #FFFFFF; }
+    
+    .blink {
+        animation: blink 0.8s infinite;
+    }
+    
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+</style>
+
+<script language="VBScript">
+    Dim progress, logLines, popupWindows
+    Dim errorMessages(3), logMessages(34)
+    
+    ' Initialize arrays
+    errorMessages(0) = "*** STOP: 0x0000007B (0xF78D2524, 0xC0000034, 0x00000000, 0x00000000) ***"
+    errorMessages(1) = "*** STOP: 0x00000050 (0xBAADF00D, 0x00000000, 0xF805F820, 0x00000000) ***"
+    errorMessages(2) = "*** STOP: 0x0000001E (0x80000003, 0x80106FC0, 0xF87B5A90) ***"
+    errorMessages(3) = "*** STOP: 0x00000024 (0x00190293, 0xF885A3B0, 0xF885A0B8, 0xF87B5A90) ***"
+    
+    logMessages(0) = "ntoskrnl.exe: IRQL_NOT_LESS_OR_EQUAL"
+    logMessages(1) = "Beginning dump of physical memory"
+    logMessages(2) = "Physical memory dump complete."
+    logMessages(3) = "Contacting system administrator..."
+    logMessages(4) = "KERNEL_MODE_EXCEPTION_NOT_HANDLED"
+    logMessages(5) = "win32k.sys: PAGE_FAULT_IN_NONPAGED_AREA"
+    logMessages(6) = "Dump file: C:\Windows\Minidump\082524-01.dmp"
+    logMessages(7) = "Registry corruption detected"
+    logMessages(8) = "File system integrity check FAILED"
+    logMessages(9) = "System files corrupted - attempting repair..."
+    logMessages(10) = "ntdll.dll access violation at 0x77F5A000"
+    logMessages(11) = "CRITICAL: Master Boot Record overwritten"
+    logMessages(12) = "WARNING: All user data marked for deletion"
+    logMessages(13) = "System hive corruption level: 95%"
+    logMessages(14) = "ERROR: Cannot access C:\Windows\System32"
+    logMessages(15) = "Partition table modification complete"
+    logMessages(16) = "BIOS settings wiped - permanent"
+    logMessages(17) = "Network adapter drivers removed"
+    logMessages(18) = "USB controllers disabled"
+    logMessages(19) = "Audio devices uninstalled"
+    logMessages(20) = "Graphics drivers corrupted"
+    logMessages(21) = "CRITICAL: Hardware failure imminent"
+    logMessages(22) = "System clock desynchronized"
+    logMessages(23) = "Memory test: 47 errors found"
+    logMessages(24) = "Disk scan: 8924 bad sectors"
+    logMessages(25) = "Recovery partition deleted"
+    logMessages(26) = "Boot sector reinitialized"
+    logMessages(27) = "All restore points removed"
+    logMessages(28) = "Windows activation revoked"
+    logMessages(29) = "Admin privileges escalated"
+    logMessages(30) = "Firewall disabled"
+    logMessages(31) = "Antivirus services terminated"
+    logMessages(32) = "FINALIZING DATA WIPE..."
+    logMessages(33) = "SYSTEM DESTRUCTION COMPLETE"
+    logMessages(34) = "ERROR: Disk write failure"
+    
+    Sub Window_OnLoad
+        progress = 0
+        logLines = 0
+        Set popupWindows = CreateObject("Scripting.Dictionary")
+        Call initBSOD
+    End Sub
+    
+    Sub initBSOD
+        ' Set random error code
+        Dim randIndex : randIndex = Int(Rnd * 4)
+        Document.getElementById("error-code").innerText = errorMessages(randIndex)
+        Document.getElementById("stop-text").innerText = "A problem has been detected and Windows has been shut down to prevent damage to your computer."
+        
+        ' Start timers
+        Call PlayBeepSound
+        Window.setInterval GetRef("updateProgress"), 150
+        Window.setInterval GetRef("addLogEntry"), 120
+        Window.setTimeout GetRef("startErrorPopups"), 3000
+        
+        ' ESC key handler
+        Document.onkeydown = GetRef("handleKeyPress")
+    End Sub
+    
+    Sub updateProgress
+        progress = progress + (Rnd * 3 + 1)
+        If progress > 100 Then progress = 100
+        
+        Dim fill : Set fill = Document.getElementById("progress-fill")
+        fill.style.width = CStr(progress) & "%"
+        
+        Dim status : Set status = Document.getElementById("progress-text")
+        If progress < 30 Then
+            status.innerText = "Initializing system failure..."
+        ElseIf progress < 60 Then
+            status.innerText = "Corrupting critical files..."
+        ElseIf progress < 90 Then
+            status.innerText = "Deleting user data..."
+        Else
+            status.innerText = "FINALIZING DESTRUCTION..."
+        End If
+        
+        If Int(progress) Mod 10 = 0 And progress > 10 Then
+            Call PlayBeepSound
+        End If
+    End Sub
+    
+    Sub addLogEntry
+        If logLines >= 10 Then
+            Dim logDiv : Set logDiv = Document.getElementById("system-log")
+            logDiv.removeChild logDiv.firstChild
+            logLines = logLines - 1
+        End If
+        
+        Dim msgIndex : msgIndex = Int(Rnd * 35)
+        Dim msg : msg = logMessages(msgIndex)
+        
+        Dim entry : Set entry = Document.createElement("DIV")
+        entry.className = "log-entry"
+        
+        If InStr(msg, "ERROR") > 0 Or InStr(msg, "CRITICAL") > 0 Or InStr(msg, "FAILED") > 0 Then
+            entry.innerHTML = "<span class=""error-text"">" & msg & "</span>"
+        ElseIf InStr(msg, "WARNING") > 0 Then
+            entry.innerHTML = "<span class=""warning-text"">" & msg & "</span>"
+        Else
+            entry.innerHTML = "<span class=""info-text"">" & msg & "</span>"
+        End If
+        
+        Dim logDiv2 : Set logDiv2 = Document.getElementById("system-log")
+        logDiv2.appendChild entry
+        logLines = logLines + 1
+        logDiv2.scrollTop = logDiv2.scrollHeight
+        
+        If InStr(msg, "ERROR") > 0 Or InStr(msg, "CRITICAL") > 0 Then
+            Call PlayBeepSound
+        End If
+    End Sub
+    
+    Sub startErrorPopups
+        Window.setInterval GetRef("createErrorPopup"), 250
+    End Sub
+    
+    Sub createErrorPopup
+        If popupWindows.Count >= 15 Then Exit Sub
+        
+        Dim w, h, x, y
+        w = 350 + Int(Rnd * 150)
+        h = 200 + Int(Rnd * 100)
+        x = Int(Rnd * (screen.width - w))
+        y = Int(Rnd * (screen.height - h))
+        
+        Dim popup
+        Set popup = Window.open("", "error" & Timer, "width=" & w & ",height=" & h & ",left=" & x & ",top=" & y & ",toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=no")
+        
+        If Not popup Is Nothing Then
+            popup.document.write "<html><head><title>FATAL ERROR</title><style>body{font-family:'Lucida Console',monospace;background:#000093;color:#FFFFFF;padding:10px;font-size:10pt;}.error{border:1px solid #FFFFFF;padding:10px;}</style></head><body><div class=""error""><div style=""font-size:14pt;font-weight:bold;"">SYSTEM FAILURE</div><div>Error " & Int(Rnd*10000) & ": Critical process terminated</div><div style=""color:#FF0000;margin-top:10px;"">IMMEDIATE DATA LOSS DETECTED</div><button onclick=""return false;"" style=""margin-top:10px;"">Details >></button></div></body></html>"
+            popup.document.close()
+            popupWindows.Add CStr(popupWindows.Count), popup
+            Call PlayBeepSound
+        End If
+    End Sub
+    
+    Sub PlayBeepSound
+        On Error Resume Next
+        Dim sound
+        Set sound = CreateObject("SAPI.SpVoice")
+        sound.Speak "ERROR"
+        Beep 800, 100
+        On Error Goto 0
+    End Sub
+    
+    Sub handleKeyPress
+        Dim e : Set e = window.event
+        If e.keyCode = 27 Then
+            Call stopEverything
+        End If
+    End Sub
+    
+    Sub stopEverything
+        Dim i
+        For i = 0 To popupWindows.Count - 1
+            On Error Resume Next
+            popupWindows.Item(CStr(i)).close()
+            On Error Goto 0
+        Next
+        On Error Resume Next
+        window.close()
+        On Error Goto 0
+    End Sub
+</script>
+
+</head>
+<body>
+    <div class="bsod-header">
+        <div class="error-code blink" id="error-code"></div>
+        <div class="stop-message" id="stop-text"></div>
+    </div>
+    
+    <div class="technical-info">
+        <div class="tech-line">DRIVER_IRQL_NOT_LESS_OR_EQUAL           ntkrnlmp.exe</div>
+        <div class="tech-line">Arg1: c0000005, Exception occurred at address 804E7A4E</div>
+        <div class="tech-line">Arg2: 804E7A4E, Address referenced from 804E7A4E</div>
+        <div class="tech-line">Arg3: f86b1c10, IRQL was 2 when HIGH_IRQL was referenced</div>
+        <div class="tech-line">Arg4: 0, Address which referenced memory</div>
+    </div>
+    
+    <div class="progress-section">
+        <div class="progress-text" id="progress-text">Initializing system failure...</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+    </div>
+    
+    <div class="system-log" id="system-log"></div>
+</body>
+</html>
